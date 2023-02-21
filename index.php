@@ -1,39 +1,64 @@
 <?php
     
-    require_once("./connect.php");
+    // require_once("./connect.php");
     
-    // extra
-    //----------------------------------------------------
+    // // extra
+    // //----------------------------------------------------
+    // $limit = 5;
+    // $page = (int)($_GET["page"] ?? 1);
+    // $offset = ($page * $limit) - $limit;
+    // //----------------------------------------------------
+
+    // $sql = "SELECT 
+    // id, name, description, value, signature_by
+    // FROM
+    // collections";
+
+    // //-----------------------------------------------------
+    // $stmt = $conn->query($sql);
+    // $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // $sql = "SELECT 
+    // id, name, description, value, signature_by
+    // FROM
+    // collections
+    // LIMIT {$limit}
+    // OFFSET {$offset}";
+
+    // $total_count = $stmt->rowCount();
+    // // var_dump($total_count);
+    // //-------------------------------------------------------
+    // // extra end
+
+    // $rows = [];
+    // if($conn){
+    //     $rows = $conn->query($sql)->fetchAll(PDO::FETCH_OBJ);
+    // }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    require_once("./connect.php");
+
+    // Caching
+    $total_count = isset($_COOKIE["total_collections_count"]) ? $_COOKIE["total_collections_count"] : 0;
+    if($total_count == 0){
+        $sql = "SELECT COUNT(id) as total FROM collections";
+        $total_count = (int)$conn->query($sql)->fetch(PDO::FETCH_OBJ)->total;
+        setcookie("total_collections_count", $total_count);
+    }
+
+    // pagination
     $limit = 5;
     $page = (int)($_GET["page"] ?? 1);
     $offset = ($page * $limit) - $limit;
-    //----------------------------------------------------
 
-    $sql = "SELECT 
-    id, name, description, value, signature_by
-    FROM
-    collections";
-
-    //-----------------------------------------------------
-    $stmt = $conn->query($sql);
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    $sql = "SELECT 
-    id, name, description, value, signature_by
-    FROM
-    collections
-    LIMIT {$limit}
-    OFFSET {$offset}";
-
-    $total_count = $stmt->rowCount();
-    // var_dump($total_count);
-    //-------------------------------------------------------
-    // extra end
-
-    $rows = [];
-    if($conn){
-        $rows = $conn->query($sql)->fetchAll(PDO::FETCH_OBJ);
-    }
+    // fetch all rows
+    $sql = "SELECT * FROM collections LIMIT {$limit} OFFSET :offset";
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(":offset", $offset, PDO::PARAM_INT);
+    // var_dump($stmt);
+    $stmt->execute();
+    $rows = $stmt->fetchAll(PDO::FETCH_OBJ);
+    // var_dump($rows);
 
 ?>
 
